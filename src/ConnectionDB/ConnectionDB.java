@@ -101,4 +101,7 @@ public class ConnectionDB {
         return null;
     }
 }
+public static void main(){
+        new ConnectionDB("database.db");
+}
 }
