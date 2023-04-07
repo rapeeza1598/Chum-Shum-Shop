@@ -34,12 +34,14 @@ public class ConnectSqlite {
         }
     }
 
-    public void createUser(String username, String password) throws SQLException {
+    public void createUser(String username, String password, String first_name, String Email) throws SQLException {
         // Step 3: Execute a CREATE operation
-        String sql = "INSERT INTO users (username, password) VALUES (?, ?)";
+        String sql = "INSERT INTO users (username, password, first_name, Email) VALUES (?, ?)";
         PreparedStatement statement = connection.prepareStatement(sql);
         statement.setString(1, username);
         statement.setString(2, sha256(password));
+        statement.setString(3, first_name);
+        statement.setString(4, Email);
         int rowsInserted = statement.executeUpdate();
         if (rowsInserted > 0) {
             System.out.println("A new user has been created.");
@@ -111,7 +113,7 @@ public class ConnectSqlite {
     public static void main(String[] args) {
         try {
             ConnectSqlite cn = new ConnectSqlite("database.db");
-            cn.createUser("admin", "admin");
+            cn.createUser("admin", "admin", "surayoot", "surayoot@sukird.com");
 //            cn.readUser("admin");
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
