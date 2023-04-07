@@ -109,6 +109,7 @@ public class ConnectSqlite {
             return null;
         }
     }
+    //table Customer
     public void createCustomer(String first_name,String last_name, String Email,String phone,String address,String city,boolean state,String zip) throws SQLException {
         // Step 3: Execute a CREATE operation
         String sql = "INSERT INTO customer (first_name, last_name, email, phone, address, city, state, zip) VALUES (?,?,?,?,?,?,?,?)";
@@ -172,6 +173,7 @@ public class ConnectSqlite {
             System.out.println("User not found.");
         }
     }
+    //table Product
     public void createProduct(String name, String description, String price, String category) throws SQLException{
         String sql = "INSERT INTO product (name, description, price, category) Value(?, ?, ?, ?)";
         PreparedStatement statement = connection.prepareStatement(sql);
@@ -191,9 +193,9 @@ public class ConnectSqlite {
         ResultSet resultSet = statement.executeQuery();
         if(resultSet.next()){
             System.out.println("User ID: " + resultSet.getInt("id"));
-            System.out.println("Username: " + resultSet.getString("name"));
-            System.out.println("Password: " + resultSet.getString("price"));
-            System.out.println("Password: " + resultSet.getString("category"));
+            System.out.println("nameProduct: " + resultSet.getString("name"));
+            System.out.println("price: " + resultSet.getString("price"));
+            System.out.println("category: " + resultSet.getString("category"));
         } else {
             System.out.println("User not found.");
         }
@@ -223,7 +225,114 @@ public class ConnectSqlite {
             System.out.println("Product not found.");
         }
     }
-    public static void main(String[] args) {
+    //table Order_by
+    public void createOrder(int customerId, String orderDate) throws SQLException {
+        String sql = "INSERT INTO Order_by (customer_id, order_date) VALUES (?, ?)";
+        PreparedStatement statement = connection.prepareStatement(sql);
+        statement.setInt(1, customerId);
+        statement.setString(2, orderDate);
+        int rowsInserted = statement.executeUpdate();
+        if (rowsInserted > 0) {
+            System.out.println("A new user has been created.");
+        }
+    }
+    public void updateOrder(int orderId, int customerId, String orderDate) throws SQLException {
+        String sql = "UPDATE Order_by SET customer_id = ?, order_date = ? WHERE order_id = ?";
+        PreparedStatement statement = connection.prepareStatement(sql);
+        statement.setInt(1, customerId);
+        statement.setString(2, orderDate);
+        statement.setInt(3,orderId);
+        int rowsUpdated = statement.executeUpdate();
+        if(rowsUpdated > 0){
+            System.out.println("Update already done.");
+        }else{
+            System.out.println("Error Please check.");
+        }
+
+    }
+    public void readOrder(int orderId) throws SQLException{
+        String sql = "SELECT * FROM Order_by WHERE order_id = ?";
+        PreparedStatement statement = connection.prepareStatement(sql);
+        statement.setInt(1, orderId);
+        ResultSet resultSet = statement.executeQuery();
+        if(resultSet.next()){
+            System.out.println("User ID: " + resultSet.getInt("order_id"));
+            System.out.println("Customer_id: " + resultSet.getString("customer_id"));
+
+
+        } else {
+            System.out.println("User not found.");
+        }
+    }
+    public void deleteOrder(int orderId) throws SQLException{
+        String sql = "DELETE FROM Order_by WHERE order_id = ?";
+        PreparedStatement statement = connection.prepareStatement(sql);
+        statement.setInt(1, orderId);
+        int rowsDeleted = statement.executeUpdate();
+        if (rowsDeleted > 0) {
+            System.out.println("The order has been deleted.");
+        } else {
+            System.out.println("order not found.");
+        }
+    }
+
+//table OrderItem
+    public void createOrderItem(int orderId, String productName, int quantity, double price) throws SQLException{
+        String sql = "INSERT INTO OrderItem (order_id, product_name, quantity, price) VALUES (?, ?, ?, ?)";
+        PreparedStatement statement = connection.prepareStatement(sql);
+        statement.setInt(1, orderId);
+        statement.setString(2, productName);
+        statement.setInt(3, quantity);
+        statement.setDouble(4, price);
+        int rowsInserted = statement.executeUpdate();
+        if (rowsInserted > 0) {
+            System.out.println("A new user has been created.");
+        }else{
+            System.out.println("can't Create orderItem");
+        }
+    }
+    public void updateOrderItem(int orderItemId, int orderId, String productName, int quantity, double price) throws SQLException {
+        String sql = "UPDATE OrderItem SET order_id = ?, product_name = ?, quantity = ?, price = ? WHERE order_item_id = ?";
+        PreparedStatement statement = connection.prepareStatement(sql);
+        statement.setInt(1, orderId);
+        statement.setString(2, productName);
+        statement.setInt(3, quantity);
+        statement.setDouble(4, price);
+        statement.setInt(5, orderItemId);
+        int rowsUpdated = statement.executeUpdate();
+        if(rowsUpdated > 0){
+            System.out.println("Update already done.");
+        }else{
+            System.out.println("Error Please check.");
+        }
+    }
+    public void readOrderItem(int orderId) throws SQLException{
+        String sql = "SELECT * FROM OrderItem WHERE order_id = ?";
+        PreparedStatement statement = connection.prepareStatement(sql);
+        statement.setInt(1, orderId);
+        ResultSet resultSet = statement.executeQuery();
+        if(resultSet.next()){
+            System.out.println("OrderItem_id: " + resultSet.getInt("order_id"));
+            System.out.println("Product_name: " + resultSet.getString("product_name"));
+            System.out.println("Quantity: " + resultSet.getInt("quantity"));
+            System.out.println("Price: " + resultSet.getDouble("price"));
+        } else {
+            System.out.println("User not found.");
+        }
+    }
+    public void deleteOrderItem(int orderItemId) throws SQLException{
+        String sql = "DELETE FROM OrderItem WHERE order_item_id = ?";
+        PreparedStatement statement = connection.prepareStatement(sql);
+        statement.setInt(1, orderItemId);
+        int rowsDeleted = statement.executeUpdate();
+        if (rowsDeleted > 0) {
+            System.out.println("The order has been deleted.");
+        } else {
+            System.out.println("order not found.");
+        }
+    }
+
+        public static void main(String[] args) {
         try {
             ConnectSqlite cn = new ConnectSqlite("database.db");
             cn.readUser("admin");
