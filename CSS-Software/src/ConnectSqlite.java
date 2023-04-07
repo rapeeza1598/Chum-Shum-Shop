@@ -142,16 +142,17 @@ public class ConnectSqlite {
     }
     public void updateCustomer(String first_name,String last_name, String Email,String phone,String address,String city,boolean state,String zip) throws SQLException {
         // Step 3: Execute an UPDATE operation
-        String sql = "UPDATE customer SET last_name = ?, email = ?, phone = ?, address = ?, city = ?, state = ?, zip = ? WHERE first_name = ?";
+        String sql = "UPDATE customer SET first_name = ?, last_name = ?, email = ?, phone = ?, address = ?, city = ?, state = ?, zip = ? WHERE first_name = ?";
         PreparedStatement statement = connection.prepareStatement(sql);
-        statement.setString(1, last_name);
-        statement.setString(2, Email);
-        statement.setString(3, phone);
-        statement.setString(4, address);
-        statement.setString(5, city);
-        statement.setBoolean(6, state);
-        statement.setString(7, zip);
-        statement.setString(8, first_name);
+        statement.setString(1, first_name);
+        statement.setString(2, last_name);
+        statement.setString(3, Email);
+        statement.setString(4, phone);
+        statement.setString(5, address);
+        statement.setString(6, city);
+        statement.setBoolean(7, state);
+        statement.setString(8, zip);
+        statement.setString(9, first_name);
         int rowsUpdated = statement.executeUpdate();
         if (rowsUpdated > 0) {
             System.out.println("The user's password has been updated.");
@@ -169,6 +170,57 @@ public class ConnectSqlite {
             System.out.println("The user has been deleted.");
         } else {
             System.out.println("User not found.");
+        }
+    }
+    public void createProduct(String name, String description, String price, String category) throws SQLException{
+        String sql = "INSERT INTO product (name, description, price, category) Value(?, ?, ?, ?)";
+        PreparedStatement statement = connection.prepareStatement(sql);
+        statement.setString(1, name);
+        statement.setString(2, description);
+        statement.setString(3, price);
+        statement.setString(4, category);
+        int rowsInserted = statement.executeUpdate();
+        if(rowsInserted > 0){
+            System.out.println("A new user has been created.");
+        }
+    }
+    public void readProduct(String name) throws SQLException{
+        String sql = "SELECT * FROM product WHERE name = ?";
+        PreparedStatement statement = connection.prepareStatement(sql);
+        statement.setString(1, name);
+        ResultSet resultSet = statement.executeQuery();
+        if(resultSet.next()){
+            System.out.println("User ID: " + resultSet.getInt("id"));
+            System.out.println("Username: " + resultSet.getString("name"));
+            System.out.println("Password: " + resultSet.getString("price"));
+            System.out.println("Password: " + resultSet.getString("category"));
+        } else {
+            System.out.println("User not found.");
+        }
+    }
+    public void updateProduct(String name, String description, String price, String category) throws SQLException{
+        String sql = "UPDATE product SET name = ?, description = ?, price = ?, category = ? where name = ?";
+        PreparedStatement statement = connection.prepareStatement(sql);
+        statement.setString(1, name);
+        statement.setString(2, description);
+        statement.setString(3, price);
+        statement.setString(4, category);
+        int rowsInserted = statement.executeUpdate();
+        if(rowsInserted > 0 ){
+            System.out.println("The user's password has been updated.");
+        } else {
+            System.out.println("User not found.");
+        }
+    }
+    public void deleteProduct(String name) throws SQLException {
+        String sql = "DELETE FROM product WHERE name = ?";
+        PreparedStatement statement = connection.prepareStatement(sql);
+        statement.setString(1, name);
+        int rowsDeleted = statement.executeUpdate();
+        if (rowsDeleted > 0) {
+            System.out.println("The Product has been deleted.");
+        } else {
+            System.out.println("Product not found.");
         }
     }
     public static void main(String[] args) {
