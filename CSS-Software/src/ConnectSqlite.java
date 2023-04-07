@@ -226,7 +226,6 @@ public class ConnectSqlite {
     public static void main(String[] args) {
         try {
             ConnectSqlite cn = new ConnectSqlite("database.db");
-//            cn.createUser("admin", "admin", "surayoot","setpom", "surayoot@sukird.com");
             cn.readUser("admin");
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
