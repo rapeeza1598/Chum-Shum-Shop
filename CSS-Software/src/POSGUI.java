@@ -93,7 +93,7 @@ public class POSGUI {
                 } catch (SQLException throwables) {
                     throwables.printStackTrace();
                 }
-                Object[] row = {1, searchText, 100, 1};
+                Object[] row = {1, searchText, 1, 1};
                 DefaultTableModel model = (DefaultTableModel) table.getModel();
                 model.addRow(row);
             }
@@ -180,7 +180,7 @@ public class POSGUI {
                             throw new RuntimeException(ex);
                         }
                         try {
-                            connectSqlite.createProduct(name, description, price, category);
+                            connectSqlite.createProduct(name, description, Double.toString(price), category);
                         } catch (SQLException ex) {
                             throw new RuntimeException(ex);
                         }
