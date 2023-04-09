@@ -1,5 +1,4 @@
 public class Main {
     public static void main(String[] args) {
-        new LoadingScreen();
-    }
+        LoadingScreen loadingScreen = new LoadingScreen();    }
 }

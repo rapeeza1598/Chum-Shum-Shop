@@ -9,7 +9,27 @@ import java.sql.SQLException;
 
 public class ConnectSqlite {
     private Connection connection;
-
+    private int id;
+    private String username;
+    private String password;
+    public void setUsername(String username) {
+        this.username = username;
+    }
+    public void setPassword(String password) {
+        this.password = password;
+    }
+    public String getUsername() {
+        return username;
+    }
+    public String getPassword() {
+        return password;
+    }
+    public int getId() {
+        return id;
+    }
+    public void setId(int id) {
+        this.id = id;
+    }
     public ConnectSqlite(String dbName) throws ClassNotFoundException, SQLException {
         // Step 1: Load the SQLite JDBC driver
         try {
@@ -58,6 +78,9 @@ public class ConnectSqlite {
             System.out.println("User ID: " + resultSet.getInt("id"));
             System.out.println("Username: " + resultSet.getString("username"));
             System.out.println("Password: " + resultSet.getString("password"));
+            this.id = resultSet.getInt("id");
+            this.username = resultSet.getString("username");
+            this.password = resultSet.getString("password");
         } else {
             System.out.println("User not found.");
         }
@@ -110,7 +133,7 @@ public class ConnectSqlite {
         }
     }
     //table Customer
-    public void createCustomer(String first_name,String last_name, String Email,String phone,String address,String city,boolean state,String zip) throws SQLException {
+    public void createCustomer(String first_name,String last_name, String Email,String phone,String address,String city,String  state,String zip) throws SQLException {
         // Step 3: Execute a CREATE operation
         String sql = "INSERT INTO customer (first_name, last_name, email, phone, address, city, state, zip) VALUES (?,?,?,?,?,?,?,?)";
         PreparedStatement statement = connection.prepareStatement(sql);
@@ -120,7 +143,7 @@ public class ConnectSqlite {
         statement.setString(4, phone);
         statement.setString(5, address);
         statement.setString(6, city);
-        statement.setBoolean(7, state);
+        statement.setString(7, state);
         statement.setString(8, zip);
         int rowsInserted = statement.executeUpdate();
         if (rowsInserted > 0) {
@@ -174,12 +197,12 @@ public class ConnectSqlite {
         }
     }
     //table Product
-    public void createProduct(String name, String description, String price, String category) throws SQLException{
+    public void createProduct(String name, String description,Double price, String category) throws SQLException{
         String sql = "INSERT INTO product (name, description, price, category) Value(?, ?, ?, ?)";
         PreparedStatement statement = connection.prepareStatement(sql);
         statement.setString(1, name);
         statement.setString(2, description);
-        statement.setString(3, price);
+        statement.setDouble(3, price);
         statement.setString(4, category);
         int rowsInserted = statement.executeUpdate();
         if(rowsInserted > 0){
@@ -336,9 +359,7 @@ public class ConnectSqlite {
         try {
             ConnectSqlite cn = new ConnectSqlite("database.db");
             cn.readUser("admin");
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (SQLException e) {
+        } catch (ClassNotFoundException | SQLException e) {
             throw new RuntimeException(e);
         }
     }

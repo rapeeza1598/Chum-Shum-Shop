@@ -50,6 +50,8 @@ public class LoginScreen extends JFrame implements ActionListener {
         if (username.equals("admin") && password.equals("admin")) {
             JOptionPane.showMessageDialog(this, "Login successful!");
             dispose(); // Close the window
+            POSGUI pos = new POSGUI();
+            pos.createGUI();
         } else {
             JOptionPane.showMessageDialog(this, "Invalid username or password. Please try again.");
         }

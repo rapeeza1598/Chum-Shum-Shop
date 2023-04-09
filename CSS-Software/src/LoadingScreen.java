@@ -28,6 +28,8 @@ public class LoadingScreen {
         }
         frame.dispose();
 //        new GUI("Chum Shum Shop");
+        LoginScreen login = new LoginScreen();
+
     }
 
     public void centerWindow(JFrame frame) {
