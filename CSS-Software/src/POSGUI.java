@@ -10,13 +10,14 @@ public class POSGUI {
     private JTable table;
     private DefaultTableModel tableModel;
     private JTextField searchField;
-    private JButton searchButton, checkoutButton,clearButton ;
+    private JButton searchButton, checkoutButton, clearButton;
     private JMenuBar menuBar;
     private JMenu fileMenu;
     private JMenuItem addItemMenuItem;
     private JMenuItem showItemsMenuItem;
     private JMenuItem clearAllItemsMenuItem;
     private JMenuItem exitMenuItem;
+
     public void createGUI() {
         frame = new JFrame("Point of Sale System");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -89,28 +90,40 @@ public class POSGUI {
                     throw new RuntimeException(ex);
                 }
                 try {
-                    connectSqlite.readProduct(searchText);
+                    Object[] row = (Object[]) connectSqlite.readProduct(searchText);
+                    if (row == null) {
+                        JOptionPane.showMessageDialog(frame, "Item not found");
+                    } else {
+                        // Add the item to the table
+                        DefaultTableModel model = (DefaultTableModel) table.getModel();
+                        model.addRow(row);
+                    }
                 } catch (SQLException throwables) {
                     throwables.printStackTrace();
                 }
-                Object[] row = {1, searchText, 1, 1};
-                DefaultTableModel model = (DefaultTableModel) table.getModel();
-                model.addRow(row);
+//                Object[] row = {1, searchText, 1, 1};
+//                DefaultTableModel model = (DefaultTableModel) table.getModel();
+//                model.addRow(row);
             }
         });
         JScrollPane finalScrollPane = scrollPane;
         checkoutButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                int[] selectedRows = table.getSelectedRows();
-                double totalPrice = 0.0;
-                for (int row : selectedRows) {
-                    int itemId = (int) table.getModel().getValueAt(row, 0);
-                    int quantity = (int) table.getModel().getValueAt(row, 3);
-                    double price = (double) table.getModel().getValueAt(row, 2);
-                    totalPrice += price * quantity;
-                    table.getModel().setValueAt(0, row, 3);
+                // not selected
+                if (table.getSelectedRow() == -1) {
+                    JOptionPane.showMessageDialog(frame, "Please select an item to checkout");
+                } else {
+                    int[] selectedRows = table.getSelectedRows();
+                    double totalPrice = 0.0;
+                    for (int row : selectedRows) {
+                        int itemId = (int) table.getModel().getValueAt(row, 0);
+                        int quantity = Integer.parseInt((String) table.getModel().getValueAt(row, 3));
+                        double price = Double.parseDouble((String) table.getModel().getValueAt(row, 2));
+                        totalPrice += price * quantity;
+                        table.getModel().setValueAt(0, row, 3);
+                    }
+                    JOptionPane.showMessageDialog(frame, "Total price: $" + totalPrice);
                 }
-                JOptionPane.showMessageDialog(frame, "Total price: $" + totalPrice);
                 //after checkout, remove the selected rows
 //                DefaultTableModel model = (DefaultTableModel) table.getModel();
 //                for (int i = selectedRows.length - 1; i >= 0; i--) {
@@ -180,7 +193,7 @@ public class POSGUI {
                             throw new RuntimeException(ex);
                         }
                         try {
-                            connectSqlite.createProduct(name, description, Double.toString(price), category);
+                            connectSqlite.createProduct(name, description, price, category);
                         } catch (SQLException ex) {
                             throw new RuntimeException(ex);
                         }

@@ -173,30 +173,39 @@ public class ConnectSqlite {
         }
     }
     //table Product
-    public void createProduct(String name, String description, String price, String category) throws SQLException{
+    public void createProduct(String name, String description, Double price, String category) throws SQLException{
         String sql = "INSERT INTO product (name, description, price, category) VALUES (?, ?, ?, ?)";
         PreparedStatement statement = connection.prepareStatement(sql);
         statement.setString(1, name);
         statement.setString(2, description);
-        statement.setString(3, price);
+        statement.setDouble(3, price);
         statement.setString(4, category);
         int rowsInserted = statement.executeUpdate();
         if(rowsInserted > 0){
             System.out.println("A new user has been created.");
         }
     }
-    public void readProduct(String name) throws SQLException{
+    public Object readProduct(String name) throws SQLException{
+        Object product = null;
         String sql = "SELECT * FROM product WHERE name = ?";
         PreparedStatement statement = connection.prepareStatement(sql);
         statement.setString(1, name);
         ResultSet resultSet = statement.executeQuery();
         if(resultSet.next()){
+            Object[] row = new Object[4];
+            row[0] = resultSet.getInt("id");
+            row[1] = resultSet.getString("name");
+            row[2] = resultSet.getString("price");
+            row[3] = 1;
+            product = row;
             System.out.println("User ID: " + resultSet.getInt("id"));
             System.out.println("nameProduct: " + resultSet.getString("name"));
             System.out.println("price: " + resultSet.getString("price"));
             System.out.println("category: " + resultSet.getString("category"));
+            return product;
         } else {
             System.out.println("User not found.");
+            return product;
         }
     }
     public void updateProduct(String name, String description, String price, String category, String id) throws SQLException{
@@ -336,8 +345,10 @@ public class ConnectSqlite {
     public static void main(String[] args) {
         try {
             ConnectSqlite cn = new ConnectSqlite("database.db");
-            cn.createProduct("sukird", "surayoot", "10.5", "1");
-            cn.readProduct("sukird");
+//            cn.deleteOrderItem(2);
+//            cn.readOrderItem(1);
+//            cn.createProduct( "Iphone 14 Promax","P001", 1500.0, "Mobile");
+//            cn.createProduct("Iphone 14", "P002", 999.99, "Mobile");
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         } catch (SQLException e) {
