@@ -174,12 +174,12 @@ public class ConnectSqlite {
         }
     }
     //table Product
-    public void createProduct(String name, String description, String price, String category) throws SQLException{
+    public void createProduct(String name, String description, Double price, String category) throws SQLException{
         String sql = "INSERT INTO product (name, description, price, category) Value(?, ?, ?, ?)";
         PreparedStatement statement = connection.prepareStatement(sql);
         statement.setString(1, name);
         statement.setString(2, description);
-        statement.setString(3, price);
+        statement.setDouble(3, price);
         statement.setString(4, category);
         int rowsInserted = statement.executeUpdate();
         if(rowsInserted > 0){
