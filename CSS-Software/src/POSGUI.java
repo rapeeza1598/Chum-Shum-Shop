@@ -10,12 +10,12 @@ public class POSGUI {
     private JTable table;
     private DefaultTableModel tableModel;
     private JTextField searchField;
-    private JButton searchButton, checkoutButton, clearButton;
+    private JButton searchButton, checkoutButton, clearButton, editQuantityAndPriceButton;
     private JMenuBar menuBar;
     private JMenu fileMenu;
     private JMenuItem addItemMenuItem;
     private JMenuItem showItemsMenuItem;
-    private JMenuItem clearAllItemsMenuItem;
+    private JMenuItem oderItemMenu;
     private JMenuItem exitMenuItem;
 
     public void createGUI() {
@@ -29,7 +29,7 @@ public class POSGUI {
         fileMenu = new JMenu("File");
         addItemMenuItem = new JMenuItem("Add Item");
         showItemsMenuItem = new JMenuItem("Show Items");
-        clearAllItemsMenuItem = new JMenuItem("Search Items");
+        oderItemMenu = new JMenuItem("Order Item");
         exitMenuItem = new JMenuItem("Exit");
         // Create a panel for the clear button
         JPanel clearPanel = new JPanel(new FlowLayout());
@@ -38,7 +38,7 @@ public class POSGUI {
 
         fileMenu.add(addItemMenuItem);
         fileMenu.add(showItemsMenuItem);
-        fileMenu.add(clearAllItemsMenuItem);
+        fileMenu.add(oderItemMenu);
         fileMenu.add(exitMenuItem);
         menuBar.add(fileMenu);
         frame.setJMenuBar(menuBar);
@@ -73,27 +73,32 @@ public class POSGUI {
         JPanel buttonPanel = new JPanel(new FlowLayout());
         checkoutButton = new JButton("Checkout");
         clearButton = new JButton("Clear Table");
+        editQuantityAndPriceButton = new JButton("Edit Quantity");
         buttonPanel.add(checkoutButton);
         buttonPanel.add(clearButton);
-
+        buttonPanel.add(editQuantityAndPriceButton);
         // Add the components to the frame
         frame.add(searchPanel, BorderLayout.NORTH);
         frame.add(scrollPane, BorderLayout.CENTER);
         frame.add(buttonPanel, BorderLayout.SOUTH);
 
+        ConnectSqlite connectSqlite = null;
+        try {
+            connectSqlite = new ConnectSqlite("database.db");
+        } catch (ClassNotFoundException | SQLException ex) {
+            throw new RuntimeException(ex);
+        }
+
         // Add listeners to the search button and checkout button
+        ConnectSqlite finalConnectSqlite = connectSqlite;
+
+
         searchButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String searchText = searchField.getText();
                 System.out.println(searchText);
-                ConnectSqlite connectSqlite = null;
                 try {
-                    connectSqlite = new ConnectSqlite("database.db");
-                } catch (ClassNotFoundException | SQLException ex) {
-                    throw new RuntimeException(ex);
-                }
-                try {
-                    Object[] row = (Object[]) connectSqlite.readProduct(searchText);
+                    Object[] row = (Object[]) finalConnectSqlite.readProduct(searchText);
                     if (row == null) {
                         JOptionPane.showMessageDialog(frame, "Item not found");
                     } else {
@@ -110,32 +115,75 @@ public class POSGUI {
             }
         });
         JScrollPane ScrollPane = scrollPane;
-        checkoutButton.addActionListener(new ActionListener() {
+        // Add listeners to the edit quantity and edit price buttons to table
+        editQuantityAndPriceButton.addActionListener(new ActionListener() {
+            @Override
             public void actionPerformed(ActionEvent e) {
                 // not selected
                 if (table.getSelectedRow() == -1) {
-                    JOptionPane.showMessageDialog(frame, "Please select an item to checkout");
+                    JOptionPane.showMessageDialog(frame, "Please select an item to edit");
                 } else {
                     int[] selectedRows = table.getSelectedRows();
-                    double totalPrice = 0.0;
                     for (int row : selectedRows) {
                         int itemId = (int) table.getModel().getValueAt(row, 0);
-                        int quantity = Integer.parseInt((String) table.getModel().getValueAt(row, 3));
+                        int quantity = (int) table.getModel().getValueAt(row, 3);
+                        String name = (String) table.getModel().getValueAt(row, 1);
                         double price = Double.parseDouble((String) table.getModel().getValueAt(row, 2));
-                        totalPrice += price * quantity;
-                        table.getModel().setValueAt(0, row, 3);
+                        String quantityString = (String) JOptionPane.showInputDialog(frame, name, "Edit Quantity", JOptionPane.QUESTION_MESSAGE);
+                        if (quantityString != null && quantityString.length() > 0) {
+                            int newQuantity = Integer.parseInt(quantityString);
+                            table.getModel().setValueAt(newQuantity, row, 3);
+                        } else {
+                            JOptionPane.showMessageDialog(frame, "Please enter a valid quantity");
+                        }
                     }
-                    JOptionPane.showMessageDialog(frame, "Total price: $" + totalPrice);
                 }
-                //after checkout, remove the selected rows
-//                DefaultTableModel model = (DefaultTableModel) table.getModel();
-//                for (int i = selectedRows.length - 1; i >= 0; i--) {
-//                    model.removeRow(selectedRows[i]);
-//                }
-                tableModel.setRowCount(0); // Remove all rows
-                ScrollPane.repaint();
             }
         });
+        // Add listeners to the checkout button to calculate the total price all items in the table
+        checkoutButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //get all the rows
+                int rowCount = table.getRowCount();
+                double totalPrice = 0.0;
+                for (int row = 0; row < rowCount; row++) {
+                    int itemId = (int) table.getModel().getValueAt(row, 0);
+                    int quantity = (int) table.getModel().getValueAt(row, 3);
+                    double price = Double.parseDouble((String) table.getModel().getValueAt(row, 2));
+                    totalPrice += price * quantity;
+                }
+                JOptionPane.showMessageDialog(frame, "Total price: $" + totalPrice);
+                //after checkout, remove all the rows
+                DefaultTableModel model = (DefaultTableModel) table.getModel();
+                model.setRowCount(0);
+            }
+        });
+//        checkoutButton.addActionListener(new ActionListener() {
+//            public void actionPerformed(ActionEvent e) {
+//                // not selected
+//                if (table.getSelectedRow() == -1) {
+//                    JOptionPane.showMessageDialog(frame, "Please select an item to checkout");
+//                } else {
+//                    int[] selectedRows = table.getSelectedRows();
+//                    double totalPrice = 0.0;
+//                    for (int row : selectedRows) {
+//                        int itemId = (int) table.getModel().getValueAt(row, 0);
+//                        int quantity = (int) table.getModel().getValueAt(row, 3);
+//                        double price = Double.parseDouble((String) table.getModel().getValueAt(row, 2));
+//                        totalPrice += price * quantity;
+//                    }
+//                    JOptionPane.showMessageDialog(frame, "Total price: $" + totalPrice);
+//                }
+//                //after checkout, remove the selected rows
+////                DefaultTableModel model = (DefaultTableModel) table.getModel();
+////                for (int i = selectedRows.length - 1; i >= 0; i--) {
+////                    model.removeRow(selectedRows[i]);
+////                }
+//                tableModel.setRowCount(0); // Remove all rows
+//                ScrollPane.repaint();
+//            }
+//        });
         clearButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 tableModel.setRowCount(0); // Remove all rows
@@ -147,6 +195,7 @@ public class POSGUI {
                 System.exit(0);
             }
         });
+        ConnectSqlite finalConnectSqlite1 = connectSqlite;
         showItemsMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String[] showItemsMenuItemColumnNames = {"Item ID", "Name", "Description", "Price", "Category"};
@@ -163,7 +212,7 @@ public class POSGUI {
                 DefaultTableModel showItemsMenuItemTableModel = new DefaultTableModel(showItemsMenuItemColumnNames, 0);
                 showItemsMenuItemTable.setModel(showItemsMenuItemTableModel);
                 showItemsMenuItemTable.setFillsViewportHeight(true);
-
+                showItemsMenuItemTable.setFont(new Font("Tahoma", Font.PLAIN, 14));
                 showItemsMenuItemScrollPane.setFont(new Font("Tahoma", Font.PLAIN, 16));
 
                 //Create a panel for the edit button, delete button and close button
@@ -182,16 +231,9 @@ public class POSGUI {
                 showItemsDialog.add(showItemsMenuItemScrollPane, BorderLayout.CENTER);
                 showItemsDialog.add(buttonPanel, BorderLayout.SOUTH);
 
-                // Connect to the database
-                ConnectSqlite connectSqlite = null;
-                try {
-                    connectSqlite = new ConnectSqlite("database.db");
-                } catch (ClassNotFoundException | SQLException ex) {
-                    throw new RuntimeException(ex);
-                }
                 // Get all items from the database
                 try {
-                    Object[][] rows = connectSqlite.readAllProducts();
+                    Object[][] rows = finalConnectSqlite1.readAllProducts();
                     for (Object[] row : rows) {
                         showItemsMenuItemTableModel.addRow(row);
                     }
@@ -278,6 +320,25 @@ public class POSGUI {
                         editItemDialog.setVisible(true);
                     }
                 });
+
+                //Add listener to the delete button
+                deleteButton.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        //Get the id of the selected item
+                        int id = (int) showItemsMenuItemTable.getModel().getValueAt(showItemsMenuItemTable.getSelectedRow(), 0);
+                        //Delete the item from the database
+                        try {
+                            ConnectSqlite.deleteProduct(id);
+                        } catch (SQLException throwables) {
+                            throwables.printStackTrace();
+                        }
+                        //Delete the item from the showItemsMenuItemTable
+                        showItemsMenuItemTableModel.removeRow(showItemsMenuItemTable.getSelectedRow());
+                        //Show a message
+                        JOptionPane.showMessageDialog(null, "Item deleted successfully");
+
+                    }
+                });
                 closeButton.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         showItemsDialog.dispose();
@@ -287,6 +348,156 @@ public class POSGUI {
                 showItemsDialog.setVisible(true);
             }
         });
+        // order menu item listener for showing all order menu item new dialog table
+        oderItemMenu.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                //Create a dialog for showing all items
+                JDialog showOderDialog = new JDialog(frame, "Show Oder", true);
+                showOderDialog.setSize(800, 600);
+                showOderDialog.setLocationRelativeTo(null);
+                showOderDialog.setFont(new Font("Tahoma", Font.PLAIN, 16));
+                JLabel showOder = new JLabel("Show Oder");
+                //Add a table to the dialog to show all items
+                JTable showOderTable = new JTable();
+                showOderTable.setFont(new Font("Tahoma", Font.PLAIN, 16));
+                showOderTable.setRowHeight(30);
+                DefaultTableModel showOderTableModel = new DefaultTableModel();
+                showOderTableModel.setColumnIdentifiers(new Object[]{"Oder ID", "Customer Name", "Customer Address", "Customer Phone", "Product Name", "Product Price", "Product Quantity", "Total Price"});
+                showOderTable.setModel(showOderTableModel);
+                //Add buttons to the dialog
+                JPanel buttonPanel = new JPanel(new FlowLayout());
+                JButton editButton = new JButton("Edit Oder");
+                JButton deleteButton = new JButton("Delete Oder");
+                JButton closeButton = new JButton("Close");
+                buttonPanel.add(editButton);
+                buttonPanel.add(deleteButton);
+                buttonPanel.add(closeButton);
+                //Add a scroll pane to the table
+                JScrollPane scrollPane = new JScrollPane(showOderTable);
+                //Add listener to the close button
+                closeButton.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        showOderDialog.dispose();
+                    }
+                });
+                //Add listener to the delete button
+                deleteButton.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        //Get the id of the selected item
+                        int id = (int) showOderTable.getModel().getValueAt(showOderTable.getSelectedRow(), 0);
+                        //Delete the item from the database
+                        try {
+                            ConnectSqlite.deleteOrderItem(id);
+                        } catch (SQLException throwables) {
+                            throwables.printStackTrace();
+                        }
+                        //Delete the item from the showItemsMenuItemTable
+                        showOderTableModel.removeRow(showOderTable.getSelectedRow());
+                        //Show a message
+                        JOptionPane.showMessageDialog(null, "Oder deleted successfully");
+
+                    }
+                });
+                //Add listener to the edit button
+                editButton.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        //Get the id of the selected item
+                        int id = (int) showOderTable.getModel().getValueAt(showOderTable.getSelectedRow(), 0);
+                        //Create a dialog for editing an item
+                        JDialog editOderDialog = new JDialog(frame, "Edit Oder", true);
+                        editOderDialog.setSize(300, 200);
+                        editOderDialog.setLayout(new GridLayout(5, 2));
+                        editOderDialog.setLocationRelativeTo(null);
+                        editOderDialog.setFont(new Font("Tahoma", Font.PLAIN, 16));
+                        //Add labels and fields for item information
+                        JLabel customerNameLabel = new JLabel("Customer Name:");
+                        JTextField customerNameField = new JTextField();
+                        JLabel customerAddressLabel = new JLabel("Customer Address:");
+                        JTextField customerAddressField = new JTextField();
+                        JLabel customerPhoneLabel = new JLabel("Customer Phone:");
+                        JTextField customerPhoneField = new JTextField();
+                        JLabel productNameLabel = new JLabel("Product Name:");
+                        JTextField productNameField = new JTextField();
+                        JLabel productPriceLabel = new JLabel("Product Price:");
+                        JTextField productPriceField = new JTextField();
+                        JLabel productQuantityLabel = new JLabel("Product Quantity:");
+                        JTextField productQuantityField = new JTextField();
+                        JLabel totalPriceLabel = new JLabel("Total Price:");
+                        JTextField totalPriceField = new JTextField();
+                        //Add buttons to the dialog
+                        JPanel buttonPanel = new JPanel(new FlowLayout());
+                        JButton saveButton = new JButton("Save");
+                        JButton cancelButton = new JButton("Cancel");
+                        buttonPanel.add(saveButton);
+                        buttonPanel.add(cancelButton);
+                        //Add listener to the save button
+                        saveButton.addActionListener(new ActionListener() {
+                            public void actionPerformed(ActionEvent e) {
+                                //Get the values from the fields
+                                String customerName = customerNameField.getText();
+                                String customerAddress = customerAddressField.getText();
+                                String customerPhone = customerPhoneField.getText();
+                                String productName = productNameField.getText();
+                                double productPrice = Double.parseDouble(productPriceField.getText());
+                                int productQuantity = Integer.parseInt(productQuantityField.getText());
+                                double totalPrice = Double.parseDouble(totalPriceField.getText());
+                                //Update the item in the database
+//                                try {
+//                                    ConnectSqlite.updateOder(id, customerName, customerAddress, customerPhone, productName, productPrice, productQuantity, totalPrice);
+//                                } catch (SQLException throwables) {
+//                                    throwables.printStackTrace();
+//                                }
+                                //Update the item in the showOderTable
+                                showOderTableModel.setValueAt(customerName, showOderTable.getSelectedRow(), 1);
+                                showOderTableModel.setValueAt(customerAddress, showOderTable.getSelectedRow(), 2);
+                                showOderTableModel.setValueAt(customerPhone, showOderTable.getSelectedRow(), 3);
+                                showOderTableModel.setValueAt(productName, showOderTable.getSelectedRow(), 4);
+                                showOderTableModel.setValueAt(productPrice, showOderTable.getSelectedRow(), 5);
+                                showOderTableModel.setValueAt(productQuantity, showOderTable.getSelectedRow(), 6);
+                                showOderTableModel.setValueAt(totalPrice, showOderTable.getSelectedRow(), 7);
+                                //Show a message
+                                JOptionPane.showMessageDialog(null, "Oder updated successfully");
+                                //Close the dialog
+                                editOderDialog.dispose();
+                            }
+                        });
+                        //Add listener to the cancel button
+                        cancelButton.addActionListener(new ActionListener() {
+                            public void actionPerformed(ActionEvent e) {
+                                editOderDialog.dispose();
+                            }
+                        });
+                        //Add the components to the dialog
+                        editOderDialog.add(customerNameLabel);
+                        editOderDialog.add(customerNameField);
+                        editOderDialog.add(customerAddressLabel);
+                        editOderDialog.add(customerAddressField);
+                        editOderDialog.add(customerPhoneLabel);
+                        editOderDialog.add(customerPhoneField);
+                        editOderDialog.add(productNameLabel);
+                        editOderDialog.add(productNameField);
+                        editOderDialog.add(productPriceLabel);
+                        editOderDialog.add(productPriceField);
+                        editOderDialog.add(productQuantityLabel);
+                        editOderDialog.add(productQuantityField);
+                        editOderDialog.add(totalPriceLabel);
+                        editOderDialog.add(totalPriceField);
+                        editOderDialog.add(buttonPanel, BorderLayout.SOUTH);
+                        //Show the dialog
+                        editOderDialog.setVisible(true);
+                    }
+                });
+
+                //Add the components to the dialog
+                showOderDialog.add(showOder, BorderLayout.NORTH);
+                showOderDialog.add(scrollPane, BorderLayout.CENTER);
+                showOderDialog.add(buttonPanel, BorderLayout.SOUTH);
+                //Show the dialog
+                showOderDialog.setVisible(true);
+            }
+        });
+
         // Add listener to the add item menu item
         addItemMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -300,12 +511,15 @@ public class POSGUI {
                 // Add labels and fields for item information
                 JLabel nameLabel = new JLabel("Name:");
                 JTextField nameField = new JTextField();
+                nameField.setFont(new Font("Tahoma", Font.PLAIN, 16));
                 JLabel descriptionLabel = new JLabel("Description:");
                 JTextField descriptionField = new JTextField();
+                descriptionField.setFont(new Font("Tahoma", Font.PLAIN, 16));
                 JLabel priceLabel = new JLabel("Price:");
                 JTextField priceField = new JTextField();
                 JLabel categoryLabel = new JLabel("Category:");
                 JTextField categoryField = new JTextField();
+                categoryField.setFont(new Font("Tahoma", Font.PLAIN, 16));
 
                 // Add buttons for adding and canceling
                 JButton addButton = new JButton("Add");
@@ -331,14 +545,8 @@ public class POSGUI {
                             String description = descriptionField.getText();
                             double price = Double.parseDouble(priceField.getText());
                             String category = categoryField.getText();
-                            ConnectSqlite connectSqlite = null;
                             try {
-                                connectSqlite = new ConnectSqlite("database.db");
-                            } catch (ClassNotFoundException | SQLException ex) {
-                                throw new RuntimeException(ex);
-                            }
-                            try {
-                                connectSqlite.createProduct(name, description, price, category);
+                                finalConnectSqlite.createProduct(name, description, price, category);
                             } catch (SQLException ex) {
                                 throw new RuntimeException(ex);
                             }

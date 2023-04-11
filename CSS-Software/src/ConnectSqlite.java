@@ -242,10 +242,10 @@ public class ConnectSqlite {
             System.out.println("User not found.");
         }
     }
-    public void deleteProduct(String name) throws SQLException {
-        String sql = "DELETE FROM product WHERE name = ?";
+    public static void deleteProduct(int id) throws SQLException {
+        String sql = "DELETE FROM product WHERE id = ?";
         PreparedStatement statement = connection.prepareStatement(sql);
-        statement.setString(1, name);
+        statement.setInt(1, id);
         int rowsDeleted = statement.executeUpdate();
         if (rowsDeleted > 0) {
             System.out.println("The Product has been deleted.");
@@ -293,7 +293,7 @@ public class ConnectSqlite {
             System.out.println("User not found.");
         }
     }
-    public void deleteOrder(int orderId) throws SQLException{
+    public static void deleteOrder(int orderId) throws SQLException{
         String sql = "DELETE FROM Order_by WHERE order_id = ?";
         PreparedStatement statement = connection.prepareStatement(sql);
         statement.setInt(1, orderId);
@@ -349,7 +349,7 @@ public class ConnectSqlite {
             System.out.println("User not found.");
         }
     }
-    public void deleteOrderItem(int orderItemId) throws SQLException{
+    public static void deleteOrderItem(int orderItemId) throws SQLException{
         String sql = "DELETE FROM OrderItem WHERE order_item_id = ?";
         PreparedStatement statement = connection.prepareStatement(sql);
         statement.setInt(1, orderItemId);
