@@ -21,7 +21,7 @@ public class POSGUI {
     public void createGUI() {
         frame = new JFrame("Point of Sale System");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(600, 400);
+        frame.setSize(1024, 720);
         frame.setLocationRelativeTo(null);
         // Create the menu bar
         menuBar = new JMenuBar();
@@ -106,7 +106,7 @@ public class POSGUI {
 //                model.addRow(row);
             }
         });
-        JScrollPane finalScrollPane = scrollPane;
+        JScrollPane ScrollPane = scrollPane;
         checkoutButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 // not selected
@@ -130,18 +130,153 @@ public class POSGUI {
 //                    model.removeRow(selectedRows[i]);
 //                }
                 tableModel.setRowCount(0); // Remove all rows
-                finalScrollPane.repaint();
+                ScrollPane.repaint();
             }
         });
         clearButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 tableModel.setRowCount(0); // Remove all rows
-                finalScrollPane.repaint();
+                ScrollPane.repaint();
             }
         });
         exitMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 System.exit(0);
+            }
+        });
+        showItemsMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String[] showItemsMenuItemColumnNames = {"Item ID", "Name", "Description", "Price", "Category"};
+                //Create a dialog for showing items
+                JDialog showItemsDialog = new JDialog(frame, "Show Items", true);
+                showItemsDialog.setSize(500, 550);
+                showItemsDialog.setLayout(new FlowLayout());
+                showItemsDialog.setLocationRelativeTo(null);
+
+                //Add table to the dialog
+                JLabel showItems = new JLabel("Show Items");
+                JTable showItemsMenuItemTable = new JTable();
+                JScrollPane showItemsMenuItemScrollPane = new JScrollPane(showItemsMenuItemTable);
+                DefaultTableModel showItemsMenuItemTableModel = new DefaultTableModel(showItemsMenuItemColumnNames, 0);
+                showItemsMenuItemTable.setModel(showItemsMenuItemTableModel);
+                showItemsMenuItemTable.setFillsViewportHeight(true);
+
+                //Create a panel for the edit button, delete button and close button
+                JPanel buttonPanel = new JPanel(new FlowLayout());
+                JButton editButton = new JButton("Edit");
+                JButton deleteButton = new JButton("Delete");
+                JButton closeButton = new JButton("Close");
+
+                buttonPanel.add(editButton);
+                buttonPanel.add(deleteButton);
+                buttonPanel.add(closeButton);
+                showItemsDialog.add(buttonPanel);
+
+                // Add the components to the frame
+                showItemsDialog.add(showItems, BorderLayout.NORTH);
+                showItemsDialog.add(showItemsMenuItemScrollPane, BorderLayout.CENTER);
+                showItemsDialog.add(buttonPanel, BorderLayout.SOUTH);
+
+                // Connect to the database
+                ConnectSqlite connectSqlite = null;
+                try {
+                    connectSqlite = new ConnectSqlite("database.db");
+                } catch (ClassNotFoundException | SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
+                // Get all items from the database
+                try {
+                    Object[][] rows = connectSqlite.readAllProducts();
+                    for (Object[] row : rows) {
+                        showItemsMenuItemTableModel.addRow(row);
+                    }
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
+                }
+                editButton.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        //Get the values from the fields
+                        int id = (int) showItemsMenuItemTable.getModel().getValueAt(showItemsMenuItemTable.getSelectedRow(), 0);
+                        String name = (String) showItemsMenuItemTable.getModel().getValueAt(showItemsMenuItemTable.getSelectedRow(), 1);
+                        String description = (String) showItemsMenuItemTable.getModel().getValueAt(showItemsMenuItemTable.getSelectedRow(), 2);
+                        double price = (Double) showItemsMenuItemTable.getModel().getValueAt(showItemsMenuItemTable.getSelectedRow(), 3);
+                        String category = (String) showItemsMenuItemTable.getModel().getValueAt(showItemsMenuItemTable.getSelectedRow(), 4);
+                        //Create a dialog for editing an item
+                        JDialog editItemDialog = new JDialog(frame, "Edit Item", true);
+                        editItemDialog.setSize(250, 200);
+                        editItemDialog.setLocationRelativeTo(null);
+                        JLabel editItem = new JLabel("Edit Item");
+                        //Add labels and fields for item information
+                        JLabel nameLabel = new JLabel("Name:");
+                        JTextField nameField = new JTextField(name);
+                        JLabel descriptionLabel = new JLabel("Description:");
+                        JTextField descriptionField = new JTextField(description);
+                        JLabel priceLabel = new JLabel("Price:");
+                        JTextField priceField = new JTextField(String.valueOf(price));
+                        JLabel categoryLabel = new JLabel("Category:");
+                        JTextField categoryFiend = new JTextField(String.valueOf(String.valueOf(category)));
+                        //Add buttons to the dialog
+                        JPanel buttonPanel = new JPanel(new FlowLayout());
+                        JButton saveButton = new JButton("Save");
+                        JButton cancelButton = new JButton("Cancel");
+                        buttonPanel.add(saveButton);
+                        buttonPanel.add(cancelButton);
+                        //Add listener to the save button
+                        saveButton.addActionListener(new ActionListener() {
+                            public void actionPerformed(ActionEvent e) {
+                                //Get the values from the fields
+                                String name = nameField.getText();
+                                String description = descriptionField.getText();
+                                double price = Double.parseDouble(priceField.getText());
+                                String category = (String) categoryFiend.getText();
+                                //Update the item in the database
+                                try {
+                                    ConnectSqlite.updateProduct(id, name, description, price, category);
+                                } catch (SQLException throwables) {
+                                    throwables.printStackTrace();
+                                }
+                                //Update the item in the showItemsMenuItemTable
+                                showItemsMenuItemTable.getModel().setValueAt(name, showItemsMenuItemTable.getSelectedRow(), 1);
+                                showItemsMenuItemTable.getModel().setValueAt(price, showItemsMenuItemTable.getSelectedRow(), 2);
+                                showItemsMenuItemTable.getModel().setValueAt(category, showItemsMenuItemTable.getSelectedRow(), 3);
+                                showItemsMenuItemTable.getModel().setValueAt(description, showItemsMenuItemTable.getSelectedRow(), 4);
+                                //Close the dialog
+                                editItemDialog.dispose();
+                            }
+                        });
+                        //Add listener to the cancel button
+                        cancelButton.addActionListener(new ActionListener() {
+                            public void actionPerformed(ActionEvent e) {
+                                editItemDialog.dispose();
+                            }
+                        });
+                        JPanel labelPanel = new JPanel(new GridLayout(4, 2));
+                        labelPanel.add(nameLabel);
+                        labelPanel.add(nameField);
+                        labelPanel.add(descriptionLabel);
+                        labelPanel.add(descriptionField);
+                        labelPanel.add(priceLabel);
+                        labelPanel.add(priceField);
+                        labelPanel.add(categoryLabel);
+                        labelPanel.add(categoryFiend);
+
+                        JPanel editItemPanel = new JPanel(new FlowLayout());
+                        editItemPanel.add(editItem);
+                        //Add the components to the dialog
+                        editItemDialog.add(editItemPanel,BorderLayout.NORTH);
+                        editItemDialog.add(labelPanel, BorderLayout.CENTER);
+                        editItemDialog.add(buttonPanel, BorderLayout.SOUTH);
+                        //Show the dialog
+                        editItemDialog.setVisible(true);
+                    }
+                });
+                closeButton.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        showItemsDialog.dispose();
+                    }
+                });
+                //Show the dialog
+                showItemsDialog.setVisible(true);
             }
         });
         // Add listener to the add item menu item

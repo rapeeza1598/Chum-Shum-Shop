@@ -1,14 +1,12 @@
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ConnectSqlite {
-    private Connection connection;
+    private static Connection connection;
 
     public ConnectSqlite(String dbName) throws ClassNotFoundException, SQLException {
         // Step 1: Load the SQLite JDBC driver
@@ -185,6 +183,27 @@ public class ConnectSqlite {
             System.out.println("A new user has been created.");
         }
     }
+    public Object[][] readAllProducts() throws SQLException {
+        List<Object[]> productList = new ArrayList<>();
+        String sql = "SELECT * FROM product";
+        PreparedStatement statement = connection.prepareStatement(sql);
+        ResultSet resultSet = statement.executeQuery();
+        while (resultSet.next()) {
+            Object[] row = new Object[5];
+            row[0] = resultSet.getInt("id");
+            row[1] = resultSet.getString("name");
+            row[2] = resultSet.getString("description");
+            row[3] = resultSet.getDouble("price");
+            row[4] = resultSet.getString("category");
+            productList.add(row);
+            System.out.println("User ID: " + resultSet.getInt("id"));
+            System.out.println("nameProduct: " + resultSet.getString("name"));
+            System.out.println("price: " + resultSet.getDouble("price"));
+            System.out.println("category: " + resultSet.getString("category"));
+        }
+        Object[][] product = productList.toArray(new Object[productList.size()][]);
+        return product;
+    }
     public Object readProduct(String name) throws SQLException{
         Object product = null;
         String sql = "SELECT * FROM product WHERE name = ?";
@@ -208,14 +227,14 @@ public class ConnectSqlite {
             return product;
         }
     }
-    public void updateProduct(String name, String description, String price, String category, String id) throws SQLException{
+    public static void updateProduct(int id, String name, String description, Double price, String category) throws SQLException{
         String sql = "UPDATE product SET name = ?, description = ?, price = ?, category = ? where id = ?";
         PreparedStatement statement = connection.prepareStatement(sql);
         statement.setString(1, name);
         statement.setString(2, description);
-        statement.setString(3, price);
+        statement.setDouble(3, price);
         statement.setString(4, category);
-        statement.setString(5, id);
+        statement.setInt(5, id);
         int rowsInserted = statement.executeUpdate();
         if(rowsInserted > 0 ){
             System.out.println("The user's password has been updated.");
