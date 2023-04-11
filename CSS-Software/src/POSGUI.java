@@ -23,6 +23,7 @@ public class POSGUI {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1024, 720);
         frame.setLocationRelativeTo(null);
+        frame.setFont(new Font("Tahoma", Font.PLAIN, 16));
         // Create the menu bar
         menuBar = new JMenuBar();
         fileMenu = new JMenu("File");
@@ -44,6 +45,7 @@ public class POSGUI {
         // Create a panel for the search field and search button
         JPanel searchPanel = new JPanel(new FlowLayout());
         searchField = new JTextField(20);
+        searchField.setFont(new Font("Tahoma", Font.PLAIN, 16));
         searchButton = new JButton("Search");
         searchPanel.add(searchField);
         searchPanel.add(searchButton);
@@ -65,6 +67,7 @@ public class POSGUI {
         table.setModel(tableModel);
         table.setFillsViewportHeight(true);
         scrollPane = new JScrollPane(table);
+        scrollPane.setFont(new Font("Tahoma", Font.PLAIN, 16));
 
         // Create a panel for the checkout button and clear button
         JPanel buttonPanel = new JPanel(new FlowLayout());
@@ -161,6 +164,8 @@ public class POSGUI {
                 showItemsMenuItemTable.setModel(showItemsMenuItemTableModel);
                 showItemsMenuItemTable.setFillsViewportHeight(true);
 
+                showItemsMenuItemScrollPane.setFont(new Font("Tahoma", Font.PLAIN, 16));
+
                 //Create a panel for the edit button, delete button and close button
                 JPanel buttonPanel = new JPanel(new FlowLayout());
                 JButton editButton = new JButton("Edit");
@@ -205,6 +210,7 @@ public class POSGUI {
                         JDialog editItemDialog = new JDialog(frame, "Edit Item", true);
                         editItemDialog.setSize(250, 200);
                         editItemDialog.setLocationRelativeTo(null);
+                        editItemDialog.setFont(new Font("Tahoma", Font.PLAIN, 16));
                         JLabel editItem = new JLabel("Edit Item");
                         //Add labels and fields for item information
                         JLabel nameLabel = new JLabel("Name:");
@@ -240,6 +246,8 @@ public class POSGUI {
                                 showItemsMenuItemTable.getModel().setValueAt(price, showItemsMenuItemTable.getSelectedRow(), 2);
                                 showItemsMenuItemTable.getModel().setValueAt(category, showItemsMenuItemTable.getSelectedRow(), 3);
                                 showItemsMenuItemTable.getModel().setValueAt(description, showItemsMenuItemTable.getSelectedRow(), 4);
+                                //Show a message
+                                JOptionPane.showMessageDialog(null, "Item updated successfully");
                                 //Close the dialog
                                 editItemDialog.dispose();
                             }
@@ -263,7 +271,7 @@ public class POSGUI {
                         JPanel editItemPanel = new JPanel(new FlowLayout());
                         editItemPanel.add(editItem);
                         //Add the components to the dialog
-                        editItemDialog.add(editItemPanel,BorderLayout.NORTH);
+                        editItemDialog.add(editItemPanel, BorderLayout.NORTH);
                         editItemDialog.add(labelPanel, BorderLayout.CENTER);
                         editItemDialog.add(buttonPanel, BorderLayout.SOUTH);
                         //Show the dialog
@@ -287,6 +295,7 @@ public class POSGUI {
                 addItemDialog.setSize(300, 200);
                 addItemDialog.setLayout(new GridLayout(5, 2));
                 addItemDialog.setLocationRelativeTo(null);
+                addItemDialog.setFont(new Font("Tahoma", Font.PLAIN, 16));
 
                 // Add labels and fields for item information
                 JLabel nameLabel = new JLabel("Name:");
@@ -317,22 +326,28 @@ public class POSGUI {
                 // Add listener to the add button
                 addButton.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
-                        String name = nameField.getText();
-                        String description = descriptionField.getText();
-                        double price = Double.parseDouble(priceField.getText());
-                        String category = categoryField.getText();
-                        ConnectSqlite connectSqlite = null;
                         try {
-                            connectSqlite = new ConnectSqlite("database.db");
-                        } catch (ClassNotFoundException | SQLException ex) {
-                            throw new RuntimeException(ex);
+                            String name = nameField.getText();
+                            String description = descriptionField.getText();
+                            double price = Double.parseDouble(priceField.getText());
+                            String category = categoryField.getText();
+                            ConnectSqlite connectSqlite = null;
+                            try {
+                                connectSqlite = new ConnectSqlite("database.db");
+                            } catch (ClassNotFoundException | SQLException ex) {
+                                throw new RuntimeException(ex);
+                            }
+                            try {
+                                connectSqlite.createProduct(name, description, price, category);
+                            } catch (SQLException ex) {
+                                throw new RuntimeException(ex);
+                            }
+                            // Show a message
+                            JOptionPane.showMessageDialog(null, "Item added successfully");
+                            addItemDialog.dispose();
+                        } catch (Exception ex) {
+                            JOptionPane.showMessageDialog(null, "Please enter valid data");
                         }
-                        try {
-                            connectSqlite.createProduct(name, description, price, category);
-                        } catch (SQLException ex) {
-                            throw new RuntimeException(ex);
-                        }
-                        addItemDialog.dispose();
                     }
                 });
 
