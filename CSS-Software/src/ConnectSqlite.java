@@ -234,6 +234,17 @@ public class ConnectSqlite {
             return product;
         }
     }
+    public String getProductNameById(int id) throws SQLException {
+        String sql = "SELECT name FROM product WHERE id = ?";
+        PreparedStatement statement = connection.prepareStatement(sql);
+        statement.setInt(1, id);
+        ResultSet resultSet = statement.executeQuery();
+        if (resultSet.next()) {
+            return resultSet.getString("name");
+        } else {
+            return null;
+        }
+    }
 
     public static void updateProduct(int id, String name, String description, Double price, String category) throws SQLException {
         String sql = "UPDATE product SET name = ?, description = ?, price = ?, category = ? where id = ?";
@@ -338,7 +349,7 @@ public class ConnectSqlite {
             Object[] row = new Object[6];
             row[0] = resultSet.getInt("order_item_id");
             row[1] = resultSet.getInt("order_id");
-            row[2] = resultSet.getInt("item_id");
+            row[2] = getProductNameById(resultSet.getInt("item_id"));
             row[3] = resultSet.getInt("quantity");
             row[4] = resultSet.getDouble("price");;
             row[5] = getOrderTotalPrice(resultSet.getInt("order_id"));

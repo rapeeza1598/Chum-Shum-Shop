@@ -106,6 +106,31 @@ public class POSGUI {
                         // Add the item to the table
                         DefaultTableModel model = (DefaultTableModel) table.getModel();
                         model.addRow(row);
+                        searchField.setText("");
+                    }
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
+                }
+//                Object[] row = {1, searchText, 1, 1};
+//                DefaultTableModel model = (DefaultTableModel) table.getModel();
+//                model.addRow(row);
+            }
+        });
+        // searchField enter key listener
+        searchField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String searchText = searchField.getText();
+                System.out.println(searchText);
+                try {
+                    Object[] row = (Object[]) finalConnectSqlite.readProduct(searchText);
+                    if (row == null) {
+                        JOptionPane.showMessageDialog(frame, "Item not found");
+                    } else {
+                        // Add the item to the table
+                        DefaultTableModel model = (DefaultTableModel) table.getModel();
+                        model.addRow(row);
+                        searchField.setText("");
                     }
                 } catch (SQLException throwables) {
                     throwables.printStackTrace();
