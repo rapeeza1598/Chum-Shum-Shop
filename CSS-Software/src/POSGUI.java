@@ -4,6 +4,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Random;
 
 public class POSGUI {
     private JFrame frame;
@@ -92,7 +94,6 @@ public class POSGUI {
         // Add listeners to the search button and checkout button
         ConnectSqlite finalConnectSqlite = connectSqlite;
 
-
         searchButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String searchText = searchField.getText();
@@ -152,6 +153,26 @@ public class POSGUI {
                     int quantity = (int) table.getModel().getValueAt(row, 3);
                     double price = Double.parseDouble((String) table.getModel().getValueAt(row, 2));
                     totalPrice += price * quantity;
+                }
+                //randomly generate an order id
+                Random rand = new Random();
+                int orderId = rand.nextInt(1000000);
+                //insert the order into the database
+                try {
+                    finalConnectSqlite.insertOrder(orderId, totalPrice);
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
+                //insert the order items into the database
+                for (int row = 0; row < rowCount; row++) {
+                    int itemId = (int) table.getModel().getValueAt(row, 0);
+                    int quantity = (int) table.getModel().getValueAt(row, 3);
+                    double price = Double.parseDouble((String) table.getModel().getValueAt(row, 2));
+                    try {
+                        finalConnectSqlite.insertOrderItem(orderId, itemId, quantity, price);
+                    } catch (SQLException ex) {
+                        throw new RuntimeException(ex);
+                    }
                 }
                 JOptionPane.showMessageDialog(frame, "Total price: $" + totalPrice);
                 //after checkout, remove all the rows
@@ -350,7 +371,6 @@ public class POSGUI {
         });
         // order menu item listener for showing all order menu item new dialog table
         oderItemMenu.addActionListener(new ActionListener() {
-            @Override
             public void actionPerformed(ActionEvent e) {
                 //Create a dialog for showing all items
                 JDialog showOderDialog = new JDialog(frame, "Show Oder", true);
@@ -363,7 +383,7 @@ public class POSGUI {
                 showOderTable.setFont(new Font("Tahoma", Font.PLAIN, 16));
                 showOderTable.setRowHeight(30);
                 DefaultTableModel showOderTableModel = new DefaultTableModel();
-                showOderTableModel.setColumnIdentifiers(new Object[]{"Oder ID", "Customer Name", "Customer Address", "Customer Phone", "Product Name", "Product Price", "Product Quantity", "Total Price"});
+                showOderTableModel.setColumnIdentifiers(new Object[]{"ID", "Oder ID", "Product Name", "Quantity", "Price", "Total Price"});
                 showOderTable.setModel(showOderTableModel);
                 //Add buttons to the dialog
                 JPanel buttonPanel = new JPanel(new FlowLayout());
@@ -375,6 +395,19 @@ public class POSGUI {
                 buttonPanel.add(closeButton);
                 //Add a scroll pane to the table
                 JScrollPane scrollPane = new JScrollPane(showOderTable);
+
+                // Get all items from the database
+                Object[][] rows = new Object[0][];
+                try {
+                    rows = finalConnectSqlite.getAllOrderItems();
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
+                System.out.println(Arrays.deepToString(rows));
+                for (Object[] row : rows) {
+                    showOderTableModel.addRow(row);
+                }
+
                 //Add listener to the close button
                 closeButton.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
