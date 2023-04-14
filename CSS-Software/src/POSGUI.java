@@ -331,8 +331,8 @@ public class POSGUI {
                                 }
                                 //Update the item in the showItemsMenuItemTable
                                 showItemsMenuItemTable.getModel().setValueAt(name, showItemsMenuItemTable.getSelectedRow(), 1);
-                                showItemsMenuItemTable.getModel().setValueAt(price, showItemsMenuItemTable.getSelectedRow(), 2);
-                                showItemsMenuItemTable.getModel().setValueAt(category, showItemsMenuItemTable.getSelectedRow(), 3);
+                                showItemsMenuItemTable.getModel().setValueAt(price, showItemsMenuItemTable.getSelectedRow(), 3);
+                                showItemsMenuItemTable.getModel().setValueAt(category, showItemsMenuItemTable.getSelectedRow(), 2);
                                 showItemsMenuItemTable.getModel().setValueAt(description, showItemsMenuItemTable.getSelectedRow(), 4);
                                 //Show a message
                                 JOptionPane.showMessageDialog(null, "Item updated successfully");
@@ -415,7 +415,7 @@ public class POSGUI {
                 JButton editButton = new JButton("Edit Oder");
                 JButton deleteButton = new JButton("Delete Oder");
                 JButton closeButton = new JButton("Close");
-                buttonPanel.add(editButton);
+//                buttonPanel.add(editButton);
                 buttonPanel.add(deleteButton);
                 buttonPanel.add(closeButton);
                 //Add a scroll pane to the table
